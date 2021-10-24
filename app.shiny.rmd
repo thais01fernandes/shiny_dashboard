@@ -1,0 +1,151 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+install.packages('shiny')
+install.packages('shinyWidgets')
+install.packages('shinydashboard')
+```
+
+```{r}
+library('data.table')
+library('dplyr')
+library('ggplot2')
+library('plotly')
+library("readxl")
+library("tidyverse")
+```
+
+```{r}
+
+dados1 <- "https://raw.githubusercontent.com/alura-cursos/dashboard_com_r/dados/dados_limpos.csv"
+dados_limpos  <- read_delim(dados1, delim = ",")
+
+dados2 <- "https://raw.githubusercontent.com/alura-cursos/dashboard_com_r/dados/reclamacao.csv"
+dados_reclamação  <- read_delim(dados2, delim = ",")
+
+```
+
+# Resumo da base de dados
+
+```{r}
+
+summary(dados_reclamação)
+
+```
+
+# Limpando os dados: 
+
+```{r}
+
+dados_reclamação_limpo <- dados_reclamação %>% 
+  select (-17, -18) %>% 
+  filter(regiao != "N/D") %>% 
+  mutate(Atendida = gsub(pattern = "S|Siim", replacement = "sim", Atendida)) %>% 
+  mutate(Atendida = gsub(pattern = "N|nAoo|nao", replacement = "não", Atendida)) %>% 
+  filter(Atendida != "") %>% 
+  mutate(SexoConsumidor = gsub(pattern = "N|NULL", replacement = "N/I", SexoConsumidor)) 
+  
+```
+
+
+# Gráficos 
+
+```{r}
+
+# reclamações atendidas e não atendidas
+
+ grafico_atendidos <- dados_reclamação_limpo %>% 
+  ggplot() +
+  geom_bar(aes(Atendida), fill = c("lightblue3", "lightpink"), stat = "count", width = 0.80, colour="white", alpha = 0.9)+
+  theme_minimal()+
+  xlab("") +
+  ylab("") +
+  ggtitle("Quantidade de Chamados Atendidos")
+  theme(plot.title = element_text(family = "serif", size = 11, face = "bold", vjust = 0.5, colour = "black"),
+    axis.text.x=element_text(size = 14, family = "serif"),
+    axis.text.y=element_text(size = 11, family = "serif"))
+  
+ ggplotly(grafico_atendidos) 
+
+```
+
+
+```{r}
+
+# Quantidade de reclamações por UF
+
+grafico_reclamacao_uf <- dados_reclamação_limpo %>% 
+  group_by(UF) %>% 
+  tally() %>% 
+  rename(Quantidade = n) %>% 
+  ggplot()+
+  geom_bar(aes(x = reorder(UF, Quantidade), y = Quantidade,
+               text = paste("UF:", UF, "<br>", "Quantidade:", Quantidade)), fill = "lightblue3", stat = "identity")+
+  coord_flip()+
+  xlab("") +
+  ylab("")+ 
+  theme_minimal()+
+  ggtitle("Quantidade de Reclamações por UF") +
+  theme(plot.title = element_text(family = "serif", size = 12, face = "bold", vjust = 0.5, colour = "black"),
+    axis.text.x=element_text(size = 11, family = "serif"),
+    axis.text.y=element_text(size = 11, family = "serif"))
+  
+  
+ ggplotly(grafico_reclamacao_uf, tooltip = "text") 
+
+```
+
+
+```{r}
+
+# Quantidade de reclamações por data
+
+ grafico_data <- dados_reclamação_limpo %>% mutate(as.Date(DataArquivamento)) %>% 
+  group_by(DataArquivamento) %>% 
+  tally() %>% 
+  ggplot() +
+  geom_line(aes(as.Date(DataArquivamento), n), group = 1, color = "lightblue3")+
+  scale_x_date(date_labels = "%b-%Y", breaks = "6 month")+
+  theme_minimal() +
+  ggtitle("Quantidade de reclamações por data") + 
+  xlab("") +
+  ylab("") +
+  theme(plot.title = element_text(family = "serif", size = 12, face = "bold", vjust = 0.5, colour = "black"),
+    axis.text.x=element_text(size = 10, family = "serif", angle = 45, hjust = 1),
+    axis.text.y=element_text(size = 11, family = "serif"))
+  
+ggplotly(grafico_data) 
+```
+
+
+```{r}
+
+grafico_atendidas_ano <- dados_reclamação_limpo %>% 
+  group_by(anocalendario, Atendida) %>% 
+  tally() %>% 
+  mutate(Quantidade = n/sum(n)*100) %>%
+  mutate(Quantidade = round(Quantidade)) %>% 
+  rename(Ano = anocalendario) %>% 
+  ggplot() +
+  geom_bar(aes(x = Ano, y = Quantidade, fill = Atendida), stat = "identity", position = position_fill()) + 
+  theme_minimal() + 
+  ggtitle("Quantidade de reclamações atendidas ou não, por ano") + 
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks=seq(2009,2018,1)) + 
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  scale_fill_manual(name = "Atendida?", values = c("lightblue3", "lightpink"), labels = c("Sim", "Não"))+
+  theme(plot.title = element_text(family = "serif", size = 12, face = "bold", vjust = 0.5, colour = "black"),
+        text = element_text(family = "serif"),
+    axis.text.x=element_text(size = 10, family = "serif"),
+    axis.text.y=element_text(size = 11, family = "serif"),
+    legend.position = "bottom")
+
+ggplotly(grafico_atendidas_ano) 
+
+```
+
+
