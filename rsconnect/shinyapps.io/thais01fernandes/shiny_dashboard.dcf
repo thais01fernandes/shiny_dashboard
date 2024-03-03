@@ -5,6 +5,6 @@ account: thais01fernandes
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5019352
-bundleId:
+bundleId: 8323565
 url: https://thais01fernandes.shinyapps.io/shiny_dashboard/
 version: 1
