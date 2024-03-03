@@ -30,18 +30,18 @@ media_chamados_ano <- dados_limpos %>% group_by(anocalendario) %>%
   summarise(media_chamado_ano = mean(qtd_chamados)) %>% 
   as.numeric()
 
-cabecalho <- dashboardHeader(title = "Dashboard")
+cabecalho <- dashboardHeader(title = "Dados Procon")
 barra_lateral <- dashboardSidebar(width = "250px", 
                                   sidebarMenu(menuItem("Dashboard", tabName = "Dashboard", icon =  icon("dashboard")), 
                                               menuItem('Informações', tabName = 'infos', icon = icon('info-circle'))))
 
 painel_principal <- dashboardBody(
-  
+
   tags$head(tags$style(HTML(".info-box, .info-box-icon, .small-box{height: 100px}"))),
  
   tabItems(tabItem(tabName = 'infos', 
                    h1('Informações'), 
-                   infoBox(title = 'contato', subtitle = 'Para mais informações entre em contato: thais.fernandes.pereira@usp.br',
+                   infoBox(title = 'contato', subtitle = 'Para mais informações entre em contato: thais.fp.pessoal@gmail.com',
                            icon = icon("envelope-square"), color = 'black')),
            tabItem(tabName = 'Dashboard', 
                    fluidRow(
